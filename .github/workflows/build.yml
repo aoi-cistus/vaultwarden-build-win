@@ -14,6 +14,16 @@ jobs:
     - name: Setup Rust
       uses: dtolnay/rust-toolchain@stable
 
+    - uses: actions/cache@v4
+      with:
+        path: C:\vcpkg\installed
+        key: ${{ runner.os }}-vcpkg-installed-${{ env.OS_VER }}-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-vcpkg-installed-${{ env.OS_VER }}-
+          ${{ runner.os }}-vcpkg-installed-
+        script: |
+          core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+          core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
     - name: Cache cargo registry
       uses: actions/cache@v4
@@ -26,13 +36,11 @@ jobs:
           target/
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-    - name: Install OpenSSL
+    - name: Install OpenSSL and libpq
       run: |
-        vcpkg install openssl:x64-windows
-
-    - name: Install libpq
-      run: |
-        vcpkg install libpq:x64-windows
+        vcpkg install --triplet x64-windows-static-md openssl libpq
+      env:
+        VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
 
     - name: Install MySQL Server
       run: |
@@ -40,12 +48,9 @@ jobs:
 
     - name: Set environment variables
       run: |
-        echo "VCPKG_ROOT=$(pwd)\\vcpkg" >> $GITHUB_ENV
-        echo "OPENSSL_DIR=$(pwd)\\vcpkg\\installed\\x64-windows" >> $GITHUB_ENV
-        echo "LIBPQ_DIR=$(pwd)\\vcpkg\\installed\\x64-windows" >> $GITHUB_ENV
         echo "MYSQLCLIENT_VERSION=9.2" >> $GITHUB_ENV
         echo "MYSQLCLIENT_LIB_DIR=C:\\Program Files\\MySQL\\MySQL Server 9.2\\lib" >> $GITHUB_ENV
-        
+        echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
 
     - name: Build Vaultwarden
       run: |
