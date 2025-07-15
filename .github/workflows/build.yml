@@ -26,20 +26,17 @@ jobs:
           target/
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-    - name: Install vcpkg
-      run: |
-        git clone https://github.com/microsoft/vcpkg.git
-        cd vcpkg
-        ./bootstrap-vcpkg.bat
-        ./vcpkg integrate install
+    - name: Bootstrap vcpkg
+      shell: pwsh
+      run: ${{ github.workspace }}/vcpkg/bootstrap-vcpkg.bat
 
     - name: Install OpenSSL
       run: |
-        ./vcpkg install openssl:x64-windows
+        vcpkg install openssl:x64-windows
 
     - name: Install libpq
       run: |
-        ./vcpkg install libpq:x64-windows
+        vcpkg install libpq:x64-windows
 
     - name: Install MySQL Server
       run: |
@@ -52,6 +49,7 @@ jobs:
         echo "LIBPQ_DIR=$(pwd)\\vcpkg\\installed\\x64-windows" >> $GITHUB_ENV
         echo "MYSQLCLIENT_VERSION=9.2" >> $GITHUB_ENV
         echo "MYSQLCLIENT_LIB_DIR=C:\\Program Files\\MySQL\\MySQL Server 9.2\\lib" >> $GITHUB_ENV
+        
 
     - name: Build Vaultwarden
       run: |
