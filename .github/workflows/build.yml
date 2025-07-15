@@ -26,10 +26,6 @@ jobs:
           target/
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-    - name: Bootstrap vcpkg
-      shell: pwsh
-      run: ${{ github.workspace }}/vcpkg/bootstrap-vcpkg.bat
-
     - name: Install OpenSSL
       run: |
         vcpkg install openssl:x64-windows
